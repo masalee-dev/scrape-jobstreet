@@ -1,5 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
+import os
+import json
+import pandas as pd
+
 
 url = ("https://id.jobstreet.com/id/Software-Engineer-jobs-in-information-communication-technology/in-Jakarta-Raya")
 
@@ -17,17 +21,18 @@ else:
 
 def get_all_items():
     soup = BeautifulSoup(page.text, 'html.parser')
-    joblist = soup.find('div', class_='ube6hn0 _21bfxf1')
+    joblist = soup.find('div', class_='_17fz4760 _21bfxf1')
     # print(joblist.prettify())
 
+    # scraping data process
     jobdata = []
 
-    for articel in joblist.find_all('article', {'class':'ube6hn0 ube6hn1 wc8kxl93 wc8kxl8o wc8kxl7z wc8kxl7k wc8kxlbb wc8kxlaw wc8kxla7 wc8kxl9s wc8kxlh wc8kxl67 wc8kxl5f czgzl0b czgzl09 czgzl0a m81yar10 m81yar13 wc8kxl33 wc8kxl36'}):
-        position = articel.find('div', {'class':'ube6hn0 wc8kxl5h wc8kxl53'})
-        company = articel.find(attrs={'data-automation':'jobCompany'})
-        location = articel.find(attrs={'data-automation':'jobLocation'})
-        salary = articel.find('span', {'class':'ube6hn0 wc8kxl4z wc8kxlr m81yar0 m81yar1 m81yar1t m81yar6 _1lwlriv4 _1aaa7yq0'})
-        time = articel.find('span', {'class':'ube6hn0 wc8kxl4z m81yar0 m81yar1 m81yar1u m81yar6 _1lwlriv4'})
+    for article in joblist.find_all('article', {'class':'_17fz4760 _17fz4761 _16os2sm98 _16os2sm8t _16os2sm84 _16os2sm7p _16os2smbg _16os2smb1 _16os2smac _16os2sm9x _16os2smi _16os2sm6c _16os2sm5g _763n8yb _763n8y9 _763n8ya _817f7q10 _817f7q13 _16os2sm34 _16os2sm37'}):
+        position = article.find('div', {'class':'_17fz4760 _16os2sm5i _16os2sm54'})
+        company = article.find(attrs={'data-automation':'jobCompany'})
+        location = article.find(attrs={'data-automation':'jobLocation'})
+        salary = article.find('span', {'class':'_17fz4760 _1uvdxrr2 _16os2sm50 _16os2sm0 _16os2sms _1uvdxrr4'})
+        time = article.find(attrs={'data-automation':'jobListingDate'})
 
         position_text = position.get_text() if position else "Position not found"
         company_text = company.get_text() if company else 'Company not found'
@@ -49,6 +54,24 @@ def get_all_items():
             'Salary': salary_text,
             'Time apply' : time_text
         })
+
+    # writing JSON file
+    try:
+        os.mkdir('json-result')
+    except FileExistsError:
+        pass
+
+    with open('json-result/joblist.json', 'w+') as json_data:
+        json.dump(jobdata, json_data)
+    print('json created')
+
+    # create CSV file and Excel
+    df = pd.DataFrame(jobdata)
+    df.to_csv('scarping-data-Jobstreet.csv', index=False)
+    df.to_excel('scraping-data-Jobstreet.xlsx', index=False)
+
+    print('Data success created')
+
 
 
 
